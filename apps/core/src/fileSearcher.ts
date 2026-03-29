@@ -11,18 +11,25 @@ export class FileSearcher {
         };
     }
 
-    private isMatch(pattern: string, text: string): boolean {
-        let i = 0;
-        let j = 0;
+    private getScore(pattern: string, text: string): number {
+        let score = 0;
+        let p = 0;
+        let consecutive = 0;
       
-        while (i < pattern.length && j < text.length) {
-          if (pattern[i].toLowerCase() === text[j].toLowerCase()) {
-            i++;
+        for (let t = 0; t < text.length; t++) {
+          if (
+            pattern[p] &&
+            pattern[p].toLowerCase() === text[t].toLowerCase()
+          ) {
+            consecutive++;
+            score += 1 + consecutive;
+            p++;
+          } else {
+            consecutive = 0;
           }
-          j++;
         }
       
-        return i === pattern.length;
+        return p === pattern.length ? score : 0;
       }
 
     search(files : string[], pattern : string) {
