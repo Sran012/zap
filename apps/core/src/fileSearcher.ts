@@ -32,11 +32,14 @@ export class FileSearcher {
         return p === pattern.length ? score : 0;
       }
 
-    search(files : string[], pattern : string) {
-        return files.filter(file => this.isMatch(pattern,file))
-        .map((file) => ({
+      search(files: string[], pattern: string) {
+        return files
+          .map((file) => ({
             name: file,
-            score :1
-        }))
-        }
+            score: this.getScore(pattern, file)
+          }))
+          .filter((item) => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, this.options.maxResults);
+      }
 }
