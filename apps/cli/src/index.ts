@@ -15,6 +15,10 @@ function getAllFiles(dir: string, rootDir = dir): string[] {
     const relativePath = path.relative(rootDir, fullPath);
     const stat = fs.statSync(fullPath);
 
+    if(stat.isDirectory() && (item === "node_modules" || item.startsWith(".")) ){
+      continue;
+    }
+
     if (stat.isDirectory()) {
       results.push(relativePath);
       results = results.concat(getAllFiles(fullPath, rootDir));
