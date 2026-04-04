@@ -5,6 +5,16 @@ import * as fs from "fs";
 import * as path from "path";
 import { select } from "@inquirer/prompts";
 
+const SKIPPED_DIRECTORIES = new Set([
+  "node_modules",
+  "build",
+  "dist",
+  "out",
+  ".next",
+  ".turbo",
+  "coverage",
+]);
+
 function getAllFiles(dir: string, rootDir = dir): string[] {
   let results: string[] = [];
 
@@ -15,7 +25,10 @@ function getAllFiles(dir: string, rootDir = dir): string[] {
     const relativePath = path.relative(rootDir, fullPath);
     const stat = fs.statSync(fullPath);
 
-    if(stat.isDirectory() && (item === "node_modules" || item.startsWith(".")) ){
+    if (
+      stat.isDirectory() &&
+      (SKIPPED_DIRECTORIES.has(item) || item.startsWith("."))
+    ) {
       continue;
     }
 
