@@ -2,7 +2,29 @@
 import { Command } from "commander";
 import { FileSearcher } from "@zap/core";
 import * as fs from "fs";
+import * as path from "path";
 import { select } from "@inquirer/prompts";
+
+function getAllFiles(dir: string, rootDir = dir): string[] {
+  let results: string[] = [];
+
+  const items = fs.readdirSync(dir);
+
+  for (const item of items) {
+    const fullPath = path.join(dir, item);
+    const relativePath = path.relative(rootDir, fullPath);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory()) {
+      results.push(relativePath);
+      results = results.concat(getAllFiles(fullPath, rootDir));
+    } else {
+      results.push(relativePath);
+    }
+  }
+
+  return results;
+}
 
 const program = new Command();
 
@@ -12,7 +34,7 @@ program
   .option('--plain')
   .action(async (pattern:string,options:any) => {
     const searcher = new FileSearcher();
-    const files = fs.readdirSync(process.cwd());
+    const files = getAllFiles(process.cwd());
     const results = searcher.search(files, pattern);
 
     if (results.length === 0) {
