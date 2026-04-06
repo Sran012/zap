@@ -4,6 +4,7 @@ import { FileSearcher } from "@zap/core";
 import * as fs from "fs";
 import * as path from "path";
 import { select } from "@inquirer/prompts";
+import open from "open";
 
 const SKIPPED_DIRECTORIES = new Set([
   "node_modules",
@@ -87,7 +88,15 @@ program
       }))
     });
 
-    process.stdout.write(selected);
+    const fullPath = path.join(process.cwd(), selected);
+
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isFile()) {
+      await open(fullPath);
+    } else {
+      process.stdout.write(selected);
+    }
   });
 
 program.parse();
