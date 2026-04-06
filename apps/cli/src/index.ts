@@ -49,17 +49,32 @@ program
   .name("zap")
   .argument("<pattern>")
   .option('--plain')
-  .action(async (pattern:string,options:any) => {
+  .action(async (pattern: string, options: any) => {
     const searcher = new FileSearcher();
     const files = getAllFiles(process.cwd());
-    const results = searcher.search(files, pattern);
+
+    const results = files
+      .map((file) => {
+        const parts = file.split("/");
+        const name = parts[parts.length - 1];
+        const depth = parts.length;
+
+        const fullScore = searcher["getScore"](pattern, file);
+        const nameScore = searcher["getScore"](pattern, name);
+
+        const score = Math.max(fullScore, nameScore) - depth;
+
+        return { name: file, score };
+      })
+      .filter(r => r.score > 0)
+      .sort((a, b) => b.score - a.score);
 
     if (results.length === 0) {
       console.log("No match");
       return;
     }
 
-    if(options.plain){
+    if (options.plain) {
       process.stdout.write(results[0].name);
       return;
     }
@@ -71,7 +86,7 @@ program
         value: r.name
       }))
     });
-    
+
     process.stdout.write(selected);
   });
 
