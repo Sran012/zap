@@ -116,13 +116,23 @@ program
       return;
     }
 
-    const selected = await select({
-      message: "Select:",
-      choices: results.map((r) => ({
-        name: r.name,
-        value: r.name,
-      })),
-    });
+    try {
+      var selected = await select({
+        message: "Select:",
+        choices: results.map((r) => ({
+          name: r.name,
+          value: r.name,
+        })),
+      });
+    } catch (error: any) {
+      if (
+        error.name === "ExitPromptError" ||
+        error.message?.includes("force closed")
+      ) {
+        process.exit(0);
+      }
+      throw error;
+    }
 
     if (useHistory) {
       exec(selected, (error, stdout, stderr) => {
