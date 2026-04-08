@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { FileSearcher } from "@zap/core";
 import * as fs from "fs";
 import * as path from "path";
+import * as os from "os";
 import { exec } from "child_process";
 import { select } from "@inquirer/prompts";
 import open from "open";
@@ -112,7 +113,7 @@ program
     }
 
     if (options.plain) {
-      process.stdout.write(results[0].name);
+      process.stdout.write(`CD:${path.join(process.cwd(), results[0].name)}`);
       return;
     }
 
@@ -150,7 +151,8 @@ program
       if (stat.isFile()) {
         await open(fullPath);
       } else {
-        process.stdout.write(selected);
+        process.stdout.write(`CD:${fullPath}`);
+        process.exit(0);
       }
     }
   });
