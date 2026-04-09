@@ -59,6 +59,17 @@ function getHistory(): string[] {
     .filter(Boolean);
 }
 
+function reportDirectorySelection(dirPath: string) {
+  const handoffFile = process.env.ZAP_CD_FILE;
+
+  if (handoffFile) {
+    fs.writeFileSync(handoffFile, dirPath, "utf-8");
+    return;
+  }
+
+  console.log(`CD:${dirPath}`);
+}
+
 const program = new Command();
 
 program
@@ -113,12 +124,21 @@ program
     }
 
     if (options.plain) {
-      process.stdout.write(`CD:${path.join(process.cwd(), results[0].name)}`);
+      const topMatch = path.join(process.cwd(), results[0].name);
+      const stat = fs.statSync(topMatch);
+
+      if (stat.isDirectory()) {
+        reportDirectorySelection(topMatch);
+      } else {
+        console.log(topMatch);
+      }
       return;
     }
 
+    let selected: string;
+
     try {
-      var selected = await select({
+      selected = await select({
         message: "Select:",
         choices: results.map((r) => ({
           name: r.name,
@@ -151,8 +171,7 @@ program
       if (stat.isFile()) {
         await open(fullPath);
       } else {
-        process.stdout.write(`CD:${fullPath}`);
-        process.exit(0);
+        reportDirectorySelection(fullPath);
       }
     }
   });
