@@ -1,159 +1,159 @@
-# Turborepo starter
+# zap
 
-This Turborepo starter is maintained by the Turborepo core team.
+`zap` is a small terminal tool for jumping through a codebase and reusing shell history without leaving the keyboard.
 
-## Using this example
+It does two jobs:
 
-Run the following command:
+- fuzzy search files and folders from the current working directory
+- fuzzy search commands from `~/.zsh_history`
 
-```sh
-npx create-turbo@latest
-```
+When you select a file, `zap` opens it with the system default app. When you select a folder, your shell changes into that folder. When you search history, `zap` runs the selected command.
 
-## What's inside?
+## Why this exists
 
-This Turborepo includes the following packages/apps:
+The goal is simple: keep navigation fast.
 
-### Apps and Packages
+If you remember only a few characters from a filename, folder, or old command, that should be enough to get back to it. `zap` uses subsequence matching, so a query like `pac` can match `package.json` because the letters appear in order.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+## How it works
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+`zap` has three layers:
 
-### Utilities
+- `apps/core` contains the fuzzy matching logic
+- `apps/cli` contains the command-line behavior and prompt flow
+- your shell wrapper handles directory changes, because a child process cannot change the parent shell's working directory on its own
 
-This Turborepo has some additional tools already setup for you:
+The CLI searches relative paths from the current directory. It skips common generated folders such as `node_modules`, `dist`, `.next`, and `.turbo`.
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+History mode reads commands from `~/.zsh_history`. Prefix your query with `%` to search history instead of files.
 
-### Build
+## Usage
 
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Search files and folders:
 
 ```sh
-cd my-turborepo
-turbo build
+zap pac
 ```
 
-Without global `turbo`, use your package manager:
+Search command history:
 
 ```sh
-cd my-turborepo
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+zap %git
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+Use the arrow keys to move through results and press Enter to select one.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Current behavior:
+
+- selecting a file opens it
+- selecting a folder changes the current shell directory
+- selecting a history command executes it
+- pressing `Ctrl+C` exits cleanly
+
+## Plain mode
+
+`--plain` is the non-interactive mode.
+
+It is mainly for shell integration and scripting. Instead of showing the selection UI, `zap` returns the top match directly.
+
+Examples:
 
 ```sh
-turbo build --filter=docs
+zap pac --plain
+zap packages --plain
 ```
 
-Without global `turbo`:
+If the top result is a file, plain mode prints the full file path.
+
+If the top result is a directory, plain mode reports that directory for the shell wrapper so the shell can `cd` into it.
+
+## Shell integration
+
+The project currently uses a small `zsh` wrapper so folder selection can update the current shell.
+
+Use this in `~/.zshrc`:
+
+```zsh
+zap() {
+  local cd_file
+  local exit_code
+  local target
+
+  cd_file=$(mktemp)
+  ZAP_CD_FILE="$cd_file" /home/sujal/.nvm/versions/node/v22.20.0/bin/zap "$@"
+  exit_code=$?
+
+  if [[ $exit_code -eq 0 && -s "$cd_file" ]]; then
+    target=$(<"$cd_file")
+    if [[ -d "$target" ]]; then
+      cd "$target"
+    fi
+  fi
+
+  rm -f "$cd_file"
+  return $exit_code
+}
+```
+
+After updating `~/.zshrc`, reload your shell:
 
 ```sh
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+source ~/.zshrc
 ```
 
-### Develop
+## Project structure
 
-To develop all apps and packages, run the following command:
+```txt
+apps/
+  cli/
+    src/index.ts
+  core/
+    src/fileSearcher.ts
+    src/types.ts
+```
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+Key files:
+
+- [apps/cli/src/index.ts](/home/sujal/zap/apps/cli/src/index.ts) is the CLI entrypoint
+- [apps/core/src/fileSearcher.ts](/home/sujal/zap/apps/core/src/fileSearcher.ts) contains the fuzzy scorer
+- [apps/core/src/types.ts](/home/sujal/zap/apps/core/src/types.ts) contains shared types
+
+## Local development
+
+Install dependencies in the workspace with your package manager of choice.
+
+Build everything:
 
 ```sh
-cd my-turborepo
-turbo dev
+pnpm build
 ```
 
-Without global `turbo`, use your package manager:
+Build only the matcher package:
 
 ```sh
-cd my-turborepo
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+cd apps/core
+npx tsc
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+Build only the CLI:
 
 ```sh
-turbo dev --filter=web
+cd apps/cli
+npx tsc
 ```
 
-Without global `turbo`:
+Run the built CLI directly:
 
 ```sh
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+node apps/cli/dist/index.js pac
 ```
 
-### Remote Caching
+## Notes
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+- history search currently reads from `~/.zsh_history`
+- file opening uses the system default application through the `open` package
+- the matcher is intentionally simple and based on ordered character matching
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## License
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+MIT. See [LICENSE](/home/sujal/zap/LICENSE).
