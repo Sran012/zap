@@ -1,25 +1,36 @@
 {
-  "name": "cli",
+  "name": "zap",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Fuzzy search files, folders, and zsh history from the terminal",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.js"
   },
   "bin": {
     "zap": "dist/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "cli",
+    "fuzzy search",
+    "terminal",
+    "zsh"
+  ],
+  "author": "Sujal Rana",
+  "license": "MIT",
   "dependencies": {
-    "@zap/core": "file:../core",
     "commander": "^14.0.3",
     "inquirer": "^13.3.2",
     "open": "^11.0.0"
   },
   "devDependencies": {
+    "@zap/core": "file:../core",
     "@types/node": "^25.5.0",
+    "esbuild": "^0.28.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"
   }
