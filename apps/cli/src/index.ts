@@ -176,4 +176,34 @@ program
     }
   });
 
+  program
+    .command("init")
+    .argument("<shell>")
+    .action((shell: string) => {
+      if (shell !== "zsh") {
+        console.error(`Unsupported shell: ${shell}`);
+        process.exit(1);
+      }
+
+      console.log(`zap() {
+    local cd_file
+    local exit_code
+    local target
+
+    cd_file=$(mktemp)
+    ZAP_CD_FILE="$cd_file" command zap "$@"
+    exit_code=$?
+
+    if [[ $exit_code -eq 0 && -s "$cd_file" ]]; then
+      target=$(<"$cd_file")
+      if [[ -d "$target" ]]; then
+        cd "$target"
+      fi
+    fi
+
+    rm -f "$cd_file"
+    return $exit_code
+  }`);
+    });
+
 program.parse();
