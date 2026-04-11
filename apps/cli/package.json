@@ -1,11 +1,11 @@
 {
-  "name": "zap",
+  "name": "zap-search",
   "version": "1.0.0",
   "description": "Fuzzy search files, folders, and zsh history from the terminal",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.js"
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --external:@zap/core --outfile=dist/index.js"
   },
   "bin": {
     "zap": "dist/index.js"
