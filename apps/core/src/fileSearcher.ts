@@ -11,7 +11,7 @@ export class FileSearcher {
         };
     }
 
-    private getScore(pattern: string, text: string): number {
+    score(pattern: string, text: string): number {
         let score = 0;
         let p = 0;
         let consecutive = 0;
@@ -36,8 +36,26 @@ export class FileSearcher {
         return files
           .map((file) => ({
             name: file,
-            score: this.getScore(pattern, file)
+            score: this.score(pattern, file)
           }))
+          .filter((item) => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, this.options.maxResults);
+      }
+
+      searchPaths(files: string[], pattern: string) {
+        return files
+          .map((file) => {
+            const parts = file.split("/");
+            const name = parts[parts.length - 1];
+            const depth = parts.length;
+
+            const fullScore = this.score(pattern, file);
+            const nameScore = this.score(pattern, name);
+            const score = Math.max(fullScore, nameScore) - depth;
+
+            return { name: file, score };
+          })
           .filter((item) => item.score > 0)
           .sort((a, b) => b.score - a.score)
           .slice(0, this.options.maxResults);
