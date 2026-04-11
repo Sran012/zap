@@ -3,10 +3,11 @@ import { Command } from "commander";
 import { FileSearcher } from "@zap/core";
 import * as fs from "fs";
 import * as path from "path";
-import * as os from "os";
 import { exec } from "child_process";
 import { select } from "@inquirer/prompts";
 import open from "open";
+
+const DEFAULT_MAX_RESULTS = 25;
 
 const SKIPPED_DIRECTORIES = new Set([
   "node_modules",
@@ -21,21 +22,20 @@ const SKIPPED_DIRECTORIES = new Set([
 function getAllFiles(dir: string, rootDir = dir): string[] {
   let results: string[] = [];
 
-  const items = fs.readdirSync(dir);
+  const items = fs.readdirSync(dir, { withFileTypes: true });
 
   for (const item of items) {
-    const fullPath = path.join(dir, item);
+    const fullPath = path.join(dir, item.name);
     const relativePath = path.relative(rootDir, fullPath);
-    const stat = fs.statSync(fullPath);
 
     if (
-      stat.isDirectory() &&
-      (SKIPPED_DIRECTORIES.has(item) || item.startsWith("."))
+      item.isDirectory() &&
+      (SKIPPED_DIRECTORIES.has(item.name) || item.name.startsWith("."))
     ) {
       continue;
     }
 
-    if (stat.isDirectory()) {
+    if (item.isDirectory()) {
       results.push(relativePath);
       results = results.concat(getAllFiles(fullPath, rootDir));
     } else {
@@ -77,7 +77,7 @@ program
   .argument("<pattern>")
   .option("--plain")
   .action(async (pattern: string, options: any) => {
-    const searcher = new FileSearcher();
+    const searcher = new FileSearcher({ maxResults: DEFAULT_MAX_RESULTS });
     const files = getAllFiles(process.cwd());
 
     const history = getHistory();
@@ -88,34 +88,10 @@ program
 
     let results: { name: string; score: number }[] = [];
 
-    const maxResults = 10;
-
     if (useHistory) {
-      results = source
-        .map((cmd) => ({
-          name: cmd,
-          score: searcher["getScore"](query, cmd),
-        }))
-        .filter((r) => r.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, maxResults);
+      results = searcher.search(source, query);
     } else {
-      results = source
-        .map((file) => {
-          const parts = file.split("/");
-          const name = parts[parts.length - 1];
-          const depth = parts.length;
-
-          const fullScore = searcher["getScore"](query, file);
-          const nameScore = searcher["getScore"](query, name);
-
-          const score = Math.max(fullScore, nameScore) - depth;
-
-          return { name: file, score };
-        })
-        .filter((r) => r.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, maxResults);
+      results = searcher.searchPaths(source, query);
     }
 
     if (results.length === 0) {
