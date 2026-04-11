@@ -100,6 +100,11 @@ program
     }
 
     if (options.plain) {
+      if (useHistory) {
+        console.log(results[0].name);
+        return;
+      }
+
       const topMatch = path.join(process.cwd(), results[0].name);
       const stat = fs.statSync(topMatch);
 
