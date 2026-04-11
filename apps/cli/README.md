@@ -5,7 +5,7 @@
   ## Install
 
   ```sh
-  npm install -g zap
+  npm install -g zap-search
 ```
   ## Shell setup
 ```
