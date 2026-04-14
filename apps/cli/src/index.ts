@@ -56,7 +56,8 @@ function getHistory(): string[] {
   return content
     .split("\n")
     .map((line) => line.split(";").pop() || "")
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((cmd) => !cmd.trim().startsWith("zap "));
 }
 
 function reportDirectorySelection(dirPath: string) {
