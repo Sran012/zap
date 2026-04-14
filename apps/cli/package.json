@@ -1,6 +1,6 @@
 {
   "name": "zap-search",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fuzzy search files, folders, and zsh history from the terminal",
   "main": "dist/index.js",
   "scripts": {
