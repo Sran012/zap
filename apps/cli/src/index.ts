@@ -188,4 +188,41 @@ program
   }`);
     });
 
+  program
+  .command('web')
+  .argument('<cmd>')
+  .action(async (cmd: string) => {
+    const res = await fetch(`https://cheat.sh/${cmd}`,{
+      headers: {
+        'User-Agent': 'curl/7.68.0' 
+      }
+    })
+    const result = await res.text();
+
+    const stripAnsi = (str: string) => str.replace(/\x1B\[[0-9;]*m/g, '')
+
+const lines = result.split('\n')
+const items: { name: string; desc: string }[] = []
+let lastComment = ''
+
+for (const line of lines) {
+  const trimmed = stripAnsi(line).trim()  // strip ANSI then trim
+  if (trimmed.startsWith('#')) {
+    lastComment = trimmed.replace(/^#+\s*/, '')
+  } else if (trimmed.startsWith(cmd)) {
+    items.push({ name: trimmed, desc: lastComment })
+    lastComment = ''
+  }
+}
+    const selected = await select({
+      message: `Commands for "${cmd}":`,
+      choices: items.map(item => ({
+        name: `${item.name}  \x1b[90m# ${item.desc}\x1b[0m`,
+        value: item.name
+      }))
+    })
+
+    console.log('\n', selected)
+  });
+
 program.parse();
