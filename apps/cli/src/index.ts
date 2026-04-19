@@ -167,7 +167,7 @@ program
         process.exit(1);
       }
 
-      console.log(`zap() {
+    console.log(`zap() {
     local cd_file
     local exit_code
     local target
@@ -178,7 +178,9 @@ program
 
     if [[ $exit_code -eq 0 && -s "$cd_file" ]]; then
       target=$(<"$cd_file")
-      if [[ -d "$target" ]]; then
+      if [[ "$target" == CMD:* ]]; then
+        print -z "\${target#CMD:}"
+      elif [[ -d "$target" ]]; then
         cd "$target"
       fi
     fi
@@ -222,7 +224,11 @@ for (const line of lines) {
       }))
     })
 
-    console.log('\n', selected)
+    const handoffFile = process.env.ZAP_CD_FILE
+      if (handoffFile) {
+      fs.writeFileSync(handoffFile, `CMD:${selected}`, 'utf-8')  // CMD: prefix so zsh knows its a command not a cd
+    }
+    
   });
 
 program.parse();
