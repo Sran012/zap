@@ -212,7 +212,10 @@ for (const line of lines) {
   if (trimmed.startsWith('#')) {
     lastComment = trimmed.replace(/^#+\s*/, '')
   } else if (trimmed.startsWith(cmd)) {
-    items.push({ name: trimmed, desc: lastComment })
+    const parts = trimmed.split('#')
+    const cmdOnly = parts[0].trim()            // just the command
+    const inlineDesc = parts[1]?.trim() ?? ''
+    items.push({ name: cmdOnly, desc: lastComment || inlineDesc })
     lastComment = ''
   }
 }
