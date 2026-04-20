@@ -219,18 +219,32 @@ for (const line of lines) {
     lastComment = ''
   }
 }
+
+    const maxLen = Math.max(...items.map(i => i.name.length))
+    const termWidth = process.stdout.columns || 80 
+    const descMaxLen = termWidth - maxLen - 6     
+    try {
     const selected = await select({
-      message: `Commands for "${cmd}":`,
+      message: `Command Selected "${cmd}" :`,
       choices: items.map(item => ({
-        name: `${item.name}  \x1b[90m# ${item.desc}\x1b[0m`,
+        name: `${item.name.padEnd(maxLen)}  \x1b[90m# ${item.desc.slice(0, descMaxLen)}\x1b[0m`,
         value: item.name
       }))
     })
 
     const handoffFile = process.env.ZAP_CD_FILE
       if (handoffFile) {
-      fs.writeFileSync(handoffFile, `CMD:${selected}`, 'utf-8')  // CMD: prefix so zsh knows its a command not a cd
+      fs.writeFileSync(handoffFile, `CMD:${selected}`, 'utf-8')
     }
+  } catch (error: any) {
+    if (
+      error.name === "ExitPromptError" ||
+      error.message?.includes("force closed")
+    ) {
+      process.exit(0);
+    }
+    throw error;
+  }
     
   });
 
