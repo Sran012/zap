@@ -1,35 +1,34 @@
 # zap
 
-`zap` is a small terminal tool for jumping through a codebase and reusing shell history without leaving the keyboard.
+`zap` is a small terminal helper for when you know "it is somewhere here" but do not want to manually dig for it.
 
-It does two jobs:
+It lets you:
 
-- fuzzy search files and folders from the current working directory
-- fuzzy search commands from `~/.zsh_history`
+- fuzzy search files and folders from the current directory
+- jump into folders from the same prompt
+- search your `zsh` history and run old commands fast
+- search ready-made terminal snippets for stuff like `docker`, pick one, and send it back to your shell
 
-When you select a file, `zap` opens it with the system default app. When you select a folder, your shell changes into that folder. When you search history, `zap` runs the selected command.
+## Install
 
-## Why this exists
+```sh
+npm install -g zap-search
+```
 
-The goal is simple: keep navigation fast.
+## Shell setup
 
-If you remember only a few characters from a filename, folder, or old command, that should be enough to get back to it. `zap` uses subsequence matching, so a query like `pac` can match `package.json` because the letters appear in order.
+Right now shell integration is for `zsh`.
 
-## How it works
+```sh
+zap init zsh >> ~/.zshrc
+source ~/.zshrc
+```
 
-`zap` has three layers:
+This wrapper is what allows `zap` to change your current directory and hand commands back to your shell cleanly.
 
-- `apps/core` contains the fuzzy matching logic
-- `apps/cli` contains the command-line behavior and prompt flow
-- your shell wrapper handles directory changes, because a child process cannot change the parent shell's working directory on its own
+## Quick use
 
-The CLI searches relative paths from the current directory. It skips common generated folders such as `node_modules`, `dist`, `.next`, and `.turbo`.
-
-History mode reads commands from `~/.zsh_history`. Prefix your query with `%` to search history instead of files.
-
-## Usage
-
-Search files and folders:
+Search files or folders in the current project:
 
 ```sh
 zap pac
@@ -41,119 +40,78 @@ Search command history:
 zap %git
 ```
 
-Use the arrow keys to move through results and press Enter to select one.
+Search command examples/snippets from the web:
 
-Current behavior:
+```sh
+zap web docker
+```
 
-- selecting a file opens it
-- selecting a folder changes the current shell directory
-- selecting a history command executes it
-- pressing `Ctrl+C` exits cleanly
+That last one is handy when you are stuck on some random command, like Docker flags you vaguely remember. Pick the one you want and `zap` sends it back to your shell so you can run it as-is or tweak it first.
+
+## What happens after selection
+
+- file selected: opens the file
+- folder selected: changes your current shell directory
+- history command selected: executes the command
+- `zap web <topic>` selection: puts the chosen command into your shell line
 
 ## Plain mode
 
-`--plain` is the non-interactive mode.
-
-It is mainly for shell integration and scripting. Instead of showing the selection UI, `zap` returns the top match directly.
-
-Examples:
+If you do not want the interactive selector and just want the top match:
 
 ```sh
 zap pac --plain
-zap packages --plain
 ```
 
-If the top result is a file, plain mode prints the full file path.
+This is useful in scripts or when you already know your query is specific enough.
 
-If the top result is a directory, plain mode reports that directory for the shell wrapper so the shell can `cd` into it.
+## Typical examples
 
-## Shell integration
-
-The project currently uses a small `zsh` wrapper so folder selection can update the current shell.
-
-Use this in `~/.zshrc`:
-
-```zsh
-zap() {
-  local cd_file
-  local exit_code
-  local target
-
-  cd_file=$(mktemp)
-  ZAP_CD_FILE="$cd_file" /home/sujal/.nvm/versions/node/v22.20.0/bin/zap "$@"
-  exit_code=$?
-
-  if [[ $exit_code -eq 0 && -s "$cd_file" ]]; then
-    target=$(<"$cd_file")
-    if [[ -d "$target" ]]; then
-      cd "$target"
-    fi
-  fi
-
-  rm -f "$cd_file"
-  return $exit_code
-}
-```
-
-After updating `~/.zshrc`, reload your shell:
+Open a file quickly:
 
 ```sh
-source ~/.zshrc
+zap readme
 ```
 
-## Project structure
-
-```txt
-apps/
-  cli/
-    src/index.ts
-  core/
-    src/fileSearcher.ts
-    src/types.ts
-```
-
-Key files:
-
-- [apps/cli/src/index.ts](/home/sujal/zap/apps/cli/src/index.ts) is the CLI entrypoint
-- [apps/core/src/fileSearcher.ts](/home/sujal/zap/apps/core/src/fileSearcher.ts) contains the fuzzy scorer
-- [apps/core/src/types.ts](/home/sujal/zap/apps/core/src/types.ts) contains shared types
-
-## Local development
-
-Install dependencies in the workspace with your package manager of choice.
-
-Build everything:
+Jump into a folder:
 
 ```sh
-pnpm build
+zap src
 ```
 
-Build only the matcher package:
+Run something from history:
 
 ```sh
-cd apps/core
-npx tsc
+zap %docker
 ```
 
-Build only the CLI:
+Look up a command pattern when your brain is half-working:
 
 ```sh
-cd apps/cli
-npx tsc
-```
-
-Run the built CLI directly:
-
-```sh
-node apps/cli/dist/index.js pac
+zap web docker-compose
+zap web tar
+zap web find
 ```
 
 ## Notes
 
-- history search currently reads from `~/.zsh_history`
-- file opening uses the system default application through the `open` package
-- the matcher is intentionally simple and based on ordered character matching
+- hidden folders and common heavy folders like `node_modules`, `dist`, `build`, `.next`, and `coverage` are skipped
+- history search reads from `~/.zsh_history`
+- shell handoff features depend on running the `zsh` setup above
 
-## License
+## Final Words
 
-MIT. See [LICENSE](/home/sujal/zap/LICENSE).
+I'm Sujal Rana, and I started making `zap` when I was very new to programming and properly started using the terminal.
+
+At that time, even small terminal tasks used to feel irritating. Finding the right file, jumping into the right folder, remembering some old command, or searching for one Docker command I knew I had seen before, all of that was enough to break flow.
+
+So `zap` came from that phase only. I wanted something simple that makes terminal work feel less messy, especially when you're still learning and do not want to fight your tools for basic things.
+
+If you use `zap`, build something around it, or just want to say hi, you can find me here:
+
+- Twitter/X: [@twtsujal](https://x.com/twtsujal)
+- GitHub: [sran012](https://github.com/sran012)
+
+And if you want to contribute, proper welcome.
+
+If you have an idea, a fix, a weird edge case, or just want to improve the flow, open an issue or PR. This project is still being shaped, so good contributions are not just accepted, they genuinely help make `zap` better for everyone using it.
