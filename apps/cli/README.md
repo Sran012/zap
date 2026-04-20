@@ -101,11 +101,11 @@ zap web kubectl
 
 ## Final Words
 
-I'm Sujal Rana, and I started making `zap` when I was very new to programming and properly started using the terminal.
+I'm Sujal Rana, and I'm making `zap` because when I was very new to programming and got exposed to the terminal, even basic things felt harder than they should.
 
 At that time, even small terminal tasks used to feel irritating. Finding the right file, jumping into the right folder, remembering some old command, or searching for one Docker command I knew I had seen before, all of that was enough to break flow.
 
-So `zap` came from that phase only. I wanted something simple that makes terminal work feel less messy, especially when you're still learning and do not want to fight your tools for basic things.
+That feeling is the whole reason behind `zap`. I want something simple that makes terminal work feel less messy, especially when you're still learning and do not want to fight your tools for basic things.
 
 If you use `zap`, build something around it, or just want to say hi, you can find me here:
 
