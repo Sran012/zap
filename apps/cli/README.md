@@ -88,9 +88,9 @@ zap %docker
 Look up a command pattern when your brain is half-working:
 
 ```sh
-zap web docker-compose
-zap web tar
-zap web find
+zap web bun
+zap web docker
+zap web kubectl
 ```
 
 ## Notes
