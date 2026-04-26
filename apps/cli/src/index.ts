@@ -159,15 +159,11 @@ program
   });
 
   program
-    .command("init")
-    .argument("<shell>")
-    .action((shell: string) => {
-      if (shell !== "zsh") {
-        console.error(`Unsupported shell: ${shell}`);
-        process.exit(1);
-      }
-
-    console.log(`zap() {
+  .command("init")
+  .argument("<shell>")
+  .action((shell: string) => {
+    if (shell === "zsh") {
+      console.log(`zap() {
     local cd_file
     local exit_code
     local target
@@ -187,8 +183,82 @@ program
 
     rm -f "$cd_file"
     return $exit_code
-  }`);
-    });
+  }
+alias zap-search=zap`);
+
+    } else if (shell === "bash") {
+      console.log(`zap() {
+    local cd_file
+    local exit_code
+    local target
+
+    cd_file=$(mktemp)
+    ZAP_CD_FILE="$cd_file" command zap "$@"
+    exit_code=$?
+
+    if [[ $exit_code -eq 0 && -s "$cd_file" ]]; then
+      target=$(<"$cd_file")
+      if [[ "$target" == CMD:* ]]; then
+        READLINE_LINE="\${target#CMD:}"
+        READLINE_POINT=\${#READLINE_LINE}
+      elif [[ -d "$target" ]]; then
+        cd "$target"
+      fi
+    fi
+
+    rm -f "$cd_file"
+    return $exit_code
+  }
+alias zap-search=zap`);
+
+    } else if (shell === "fish") {
+      console.log(`function zap
+    set cd_file (mktemp)
+    set -x ZAP_CD_FILE $cd_file
+    command zap $argv
+    set exit_code $status
+
+    if test $exit_code -eq 0 -a -s "$cd_file"
+        set target (cat "$cd_file")
+        if string match -q "CMD:*" "$target"
+            commandline (string replace "CMD:" "" "$target")
+        else if test -d "$target"
+            cd "$target"
+        end
+    end
+
+    rm -f "$cd_file"
+    return $exit_code
+end
+alias zap-search=zap`);
+
+    } else if (shell === "powershell") {
+      console.log(`function zap {
+    $cd_file = [System.IO.Path]::GetTempFileName()
+    $env:ZAP_CD_FILE = $cd_file
+    & zap @args
+    $exit_code = $LASTEXITCODE
+
+    if ($exit_code -eq 0 -and (Get-Item $cd_file).Length -gt 0) {
+        $target = Get-Content $cd_file
+        if ($target.StartsWith("CMD:")) {
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($target.Substring(4))
+        } elseif (Test-Path $target -PathType Container) {
+            Set-Location $target
+        }
+    }
+
+    Remove-Item $cd_file -Force
+    return $exit_code
+}
+Set-Alias zap-search zap`);
+
+    } else {
+      console.error(`Unsupported shell: ${shell}`);
+      console.error(`Supported: zsh, bash, fish, powershell`);
+      process.exit(1);
+    }
+  });
 
   program
   .command('web')
