@@ -47,17 +47,53 @@ function getAllFiles(dir: string, rootDir = dir): string[] {
 }
 
 function getHistory(): string[] {
-  const historyPath = path.join(process.env.HOME || "", ".zsh_history");
+  const shell = process.env.SHELL || ''
+  const isPowerShell = !!process.env.PSModulePath
 
-  if (!fs.existsSync(historyPath)) return [];
+  let historyPath = ''
 
-  const content = fs.readFileSync(historyPath, "utf-8");
+  if (isPowerShell) {
+    historyPath = path.join(
+      process.env.APPDATA || '',
+      'Microsoft/Windows/PowerShell/PSReadLine/ConsoleHost_history.txt'
+    )
+  } else if (shell.includes('zsh')) {
+    historyPath = path.join(process.env.HOME || '', '.zsh_history')
+  } else if (shell.includes('bash')) {
+    historyPath = path.join(process.env.HOME || '', '.bash_history')
+  } else if (shell.includes('fish')) {
+    historyPath = path.join(
+      process.env.HOME || '',
+      '.local/share/fish/fish_history'
+    )
+  } else {
+    return []
+  }
+
+  if (!fs.existsSync(historyPath)) return []
+
+  const content = fs.readFileSync(historyPath, 'utf-8')
+
+  if (isPowerShell) {
+    return content
+      .split('\n')
+      .filter(Boolean)
+      .filter(cmd => !cmd.trim().startsWith('zap '))
+  }
+
+  if (shell.includes('fish')) {
+    return content
+      .split('\n')
+      .filter(line => line.startsWith('- cmd:'))
+      .map(line => line.replace('- cmd:', '').trim())
+      .filter(cmd => !cmd.startsWith('zap '))
+  }
 
   return content
-    .split("\n")
-    .map((line) => line.split(";").pop() || "")
+    .split('\n')
+    .map(line => line.split(';').pop() || '')
     .filter(Boolean)
-    .filter((cmd) => !cmd.trim().startsWith("zap "));
+    .filter(cmd => !cmd.trim().startsWith('zap '))
 }
 
 function reportDirectorySelection(dirPath: string) {
