@@ -272,7 +272,8 @@ alias zap-search=zap`);
       console.log(`function zap {
     $cd_file = [System.IO.Path]::GetTempFileName()
     $env:ZAP_CD_FILE = $cd_file
-    & zap @args
+    $zap_bin = (Get-Command zap -CommandType Application).Source   
+    & $zap_bin @args
     $exit_code = $LASTEXITCODE
 
     if ($exit_code -eq 0 -and (Get-Item $cd_file).Length -gt 0) {
@@ -285,7 +286,6 @@ alias zap-search=zap`);
     }
 
     Remove-Item $cd_file -Force
-    return $exit_code
 }
 Set-Alias zap-search zap`);
 
