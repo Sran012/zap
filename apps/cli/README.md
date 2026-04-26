@@ -6,7 +6,7 @@ It lets you:
 
 - fuzzy search files and folders from the current directory
 - jump into folders from the same prompt
-- search your `zsh` history and run old commands fast
+- search your shell history and run old commands fast
 - search ready-made terminal snippets for stuff like `docker`, pick one, and send it back to your shell
 
 ## Install
@@ -15,13 +15,45 @@ It lets you:
 npm install -g zap-search
 ```
 
+Current version: `1.1.0`
+
 ## Shell setup
 
-Right now shell integration is for `zsh`.
+Shell integration now supports:
+
+- `zsh`
+- `bash`
+- `fish`
+- `powershell`
+
+Use the setup for the shell you actually use.
+
+### zsh
 
 ```sh
 zap init zsh >> ~/.zshrc
 source ~/.zshrc
+```
+
+### bash
+
+```sh
+zap init bash >> ~/.bashrc
+source ~/.bashrc
+```
+
+### fish
+
+```fish
+zap init fish >> ~/.config/fish/config.fish
+source ~/.config/fish/config.fish
+```
+
+### PowerShell
+
+```powershell
+zap init powershell >> $PROFILE
+. $PROFILE
 ```
 
 This wrapper is what allows `zap` to change your current directory and hand commands back to your shell cleanly.
@@ -57,13 +89,11 @@ That last one is handy when you are stuck on some random command, like Docker fl
 
 ## Plain mode
 
-If you do not want the interactive selector and just want the top match:
+If you do not want the interactive selector and just want the top match for files or folders:
 
 ```sh
 zap pac --plain
 ```
-
-This is useful in scripts or when you already know your query is specific enough.
 
 ## Typical examples
 
@@ -88,16 +118,16 @@ zap %docker
 Look up a command pattern when your brain is half-working:
 
 ```sh
-zap web bun
-zap web docker
-zap web kubectl
+zap web docker-compose
+zap web tar
+zap web find
 ```
 
 ## Notes
 
-- hidden folders and common heavy folders like `node_modules`, `dist`, `build`, `.next`, and `coverage` are skipped
-- history search reads from `~/.zsh_history`
-- shell handoff features depend on running the `zsh` setup above
+- hidden folders and common heavy folders like `node_modules`, `dist`, `build`, `.next`, `.turbo`, `out`, and `coverage` are skipped
+- history search checks your active shell and reads from `~/.zsh_history`, `~/.bash_history`, `~/.local/share/fish/fish_history`, or PowerShell history accordingly
+- shell handoff features depend on running the shell setup above
 
 ## Final Words
 
@@ -112,6 +142,6 @@ If you use `zap`, build something around it, or just want to say hi, you can fin
 - Twitter/X: [@twtsujal](https://x.com/twtsujal)
 - GitHub: [sran012](https://github.com/sran012)
 
-And if you want to contribute, proper welcome.
+And if you want to contribute, you're welcome !
 
-If you have an idea, a fix, a weird edge case, or just want to improve the flow, open an issue or PR. This project is still being shaped, so good contributions are not just accepted, they genuinely help make `zap` better for everyone using it.
+If you have an idea, a fix, a weird edge case, or just want to improve the flow, open an issue or PR. This project is still being shaped, good contributions help make `zap` better for everyone using it.
