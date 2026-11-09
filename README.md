@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./logo.png" alt="zap hero banner" width="100%" />
+  <img src="./zap.png" alt="zap hero banner" width="100%" />
 
   <h1>zap</h1>
 
