@@ -1,5 +1,6 @@
 import { ArrowDown } from "./icons";
 import { CopyCommand } from "./CopyCommand";
+import { NpmDownloads } from "./NpmDownloads";
 import { Reveal } from "./Reveal";
 import { TerminalDemo } from "./TerminalDemo";
 
@@ -36,6 +37,12 @@ export function Hero() {
                 How it works
                 <ArrowDown className="h-3.5 w-3.5" />
               </a>
+            </div>
+          </Reveal>
+
+          <Reveal delay={0.16}>
+            <div className="mt-4 flex justify-center">
+              <NpmDownloads />
             </div>
           </Reveal>
         </div>
