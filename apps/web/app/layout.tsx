@@ -1,21 +1,46 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { SmoothScrollProvider } from "../components/SmoothScrollProvider";
-import { CustomCursor } from "../components/CustomCursor";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
-  title: "Zap - The Terminal Helper",
-  description: "One Terminal Helper For Doing it All Together",
+  title: "zap: it’s in here somewhere",
+  description:
+    "Fuzzy search files, folders, shell history, and command snippets from one prompt. zsh, bash, fish, and PowerShell.",
+  keywords: [
+    "zap",
+    "zap-search",
+    "terminal",
+    "fuzzy search",
+    "cli",
+    "shell history",
+  ],
+  openGraph: {
+    title: "zap: it’s in here somewhere",
+    description:
+      "Fuzzy files and folders, your shell history, and the Docker flag you half-remember. One prompt, in the shell you already use.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "zap: it’s in here somewhere",
+    description:
+      "Fuzzy files and folders, your shell history, and the Docker flag you half-remember.",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#050505",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -25,19 +50,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-white selection:text-black`}
+        className={`${geistSans.variable} ${geistMono.variable} bg-ink font-sans text-fg antialiased`}
       >
-        <SmoothScrollProvider>
-          <CustomCursor />
-          {children}
-        </SmoothScrollProvider>
+        {children}
       </body>
     </html>
   );
